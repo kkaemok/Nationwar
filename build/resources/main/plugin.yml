@@ -1,0 +1,25 @@
+name: Nationwar
+version: '1.4-SNAPSHOT'
+main: org.kkaemok.nationwar.Nationwar
+api-version: '1.21'
+depend: [LuckPerms]
+commands:
+    신상만들기:
+        description: 신상을 생성합니다.
+        usage: /신상만들기 <이름>
+        permission: nationwar.admin
+    신상리스트:
+        description: 현재 서버에 생성된 신상 목록을 봅니다.
+        permission: nationwar.admin
+    신상삭제:
+        description: 특정 신상을 ID 또는 이름으로 삭제합니다.
+        usage: /신상삭제 <ID/이름>
+        permission: nationwar.admin
+    신상리로드:
+        description: 플러그인의 설정 파일을 리로드합니다.
+        permission: nationwar.admin
+
+permissions:
+    nationwar.admin:
+        description: Nationwar 플러그인의 모든 관리자 명령어를 사용할 권한입니다.
+        default: op

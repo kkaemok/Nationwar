@@ -1,0 +1,5 @@
+statue-settings:
+  start-hour: 19
+  end-hour: 21
+  cooldown-seconds: 15
+  glow-range: 200.0
