@@ -2,41 +2,45 @@ package org.kkaemok.nationwar;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kkaemok.nationwar.command.StatueCommand;
+import org.kkaemok.nationwar.command.GuildChatCommand;
+import org.kkaemok.nationwar.listener.ChatListener;
+import org.kkaemok.nationwar.listener.GlobalChatListener; // 추가
 import org.kkaemok.nationwar.listener.PlayerListener;
 import org.kkaemok.nationwar.listener.StatueListener;
 import org.kkaemok.nationwar.manager.StatueManager;
+import org.kkaemok.nationwar.manager.GuildChatManager;
 import org.kkaemok.nationwar.task.GameLoopTask;
 
 public class Nationwar extends JavaPlugin {
 
     private static Nationwar instance;
     private StatueManager statueManager;
+    private GuildChatManager guildChatManager;
 
     @Override
     public void onEnable() {
         instance = this;
-
-        // config.yml 파일이 리소스 폴더에 실제 존재해야 에러가 발생하지 않습니다.
         saveDefaultConfig();
 
         this.statueManager = new StatueManager(this);
+        this.guildChatManager = new GuildChatManager();
 
-        // 커맨드 실행기 객체 생성
         StatueCommand statueCommand = new StatueCommand(this);
 
-        // 커맨드 등록 (plugin.yml과 일치해야 함)
         if (getCommand("신상만들기") != null) getCommand("신상만들기").setExecutor(statueCommand);
         if (getCommand("신상리스트") != null) getCommand("신상리스트").setExecutor(statueCommand);
         if (getCommand("신상삭제") != null) getCommand("신상삭제").setExecutor(statueCommand);
         if (getCommand("신상리로드") != null) getCommand("신상리로드").setExecutor(statueCommand);
 
-        // [주의] plugin.yml에서 삭제한 "신상선택"은 여기서 등록하지 않습니다.
+        if (getCommand("국가채팅") != null) getCommand("국가채팅").setExecutor(new GuildChatCommand(this));
 
-        // 리스너 등록
         getServer().getPluginManager().registerEvents(new StatueListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
-        // 게임 루프 (1초 = 20틱)
+        // [추가] 일반 채팅 포맷 변경 리스너 등록
+        getServer().getPluginManager().registerEvents(new GlobalChatListener(this), this);
+
         new GameLoopTask(this).runTaskTimer(this, 0L, 20L);
     }
 
@@ -50,4 +54,5 @@ public class Nationwar extends JavaPlugin {
 
     public static Nationwar getInstance() { return instance; }
     public StatueManager getStatueManager() { return statueManager; }
+    public GuildChatManager getGuildChatManager() { return guildChatManager; }
 }

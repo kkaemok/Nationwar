@@ -37,7 +37,21 @@ public class StatueManager {
     }
 
     public Statue createStatue(String name, Location loc, double health) {
-        Location spawnLoc = loc.getBlock().getLocation().add(0.5, 0, 0.5);
+        // [수정] 신호기 구조물 설치 (1단계: 3x3 다이아몬드 블록 + 중심 신호기)
+        Location center = loc.getBlock().getLocation();
+
+        // 1. 하단 3x3 다이아몬드 블록 설치 (y-1 레이어)
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                center.clone().add(x, -1, z).getBlock().setType(Material.DIAMOND_BLOCK);
+            }
+        }
+
+        // 2. 중심 위치에 신호기 설치 (y 레이어)
+        center.getBlock().setType(Material.BEACON);
+
+        // 3. 엔티티 소환 위치 (신호기 정중앙 위)
+        Location spawnLoc = center.clone().add(0.5, 0, 0.5);
 
         Shulker shulker = (Shulker) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.SHULKER);
         shulker.setAI(false);
@@ -76,6 +90,15 @@ public class StatueManager {
     public void removeStatue(int id) {
         Statue statue = statues.remove(id);
         if (statue != null) {
+            // [추가] 신상 삭제 시 신호기 구조물도 제거 (공기로 변경)
+            Location loc = statue.getLocation().getBlock().getLocation();
+            loc.getBlock().setType(Material.AIR); // 신호기 제거
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    loc.clone().add(x, -1, z).getBlock().setType(Material.AIR); // 다이아몬드 블록 제거
+                }
+            }
+
             if (statue.getShulker() != null) statue.getShulker().remove();
             if (statue.getDisplay() != null) statue.getDisplay().remove();
             if (statue.getBossBar() != null) statue.getBossBar().removeAll();
@@ -134,9 +157,8 @@ public class StatueManager {
         if (statues.isEmpty()) return;
         List<Statue> all = new ArrayList<>(statues.values());
         String firstOwner = all.get(0).getOwnerGuild();
-        if (firstOwner == null) return;
+        if (firstOwner == null || firstOwner.equalsIgnoreCase("무소속")) return;
 
-        // 우승 타이틀 형식 변경: 우승!! (메인) / 내용 (서브)
         if (all.stream().allMatch(s -> firstOwner.equals(s.getOwnerGuild()))) {
             Bukkit.getServer().showTitle(net.kyori.adventure.title.Title.title(
                     Component.text("우승!!").color(NamedTextColor.GOLD),
